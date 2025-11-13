@@ -1,52 +1,54 @@
-import { Student } from "../model/student.js";
+let collection;
 
-const students = new Map();
+export const init = db => collection = db.collection('college');
 
-export const addStudent = ({id, name, password}) => {
-    if(students.has(id)) {
-        return false;
-    }
-    students.set(id, new Student(id, name, password));
+export const addStudent = async ({id, name, password}) => {
+    console.log(typeof collection);
+    const existingStudent = await collection.findOne({_id: id});
+    if (existingStudent) return false;
+    await collection.insertOne({_id: id, name, password, scores: {}});
     return true;
+
 }
 
-export const findStudent = id => students.get(id);
+export const findStudent = async (id) => {
+    return await collection.findOne({_id: id});
+};
 
-export const deleteStudent = id => {
-    const student = students.get(id);
-    if (student) {
-        students.delete(id);
-        return student;
-    }
+export const deleteStudent = async id => {
+    return await collection.findOneAndDelete({_id: id});
 }
 
-export const updateStudent = (id, data) => {
-    const student = students.get(id);
-    if (student) {
-        Object.assign(student, data);
-        return student;
-    }
+export const updateStudent = async (id, data) => {
+    return await collection.findOneAndUpdate(
+        {_id: id},
+        {$set: data},
+        {returnDocument: 'after'});
 }
 
-export const addScore = (id, exam, score) => {
-    const student = students.get(id);
-    if (student) {
-        student.scores[exam] = score;
-        return true;
-
-    }
-    return false;
+export const addScore = async (id, exam, score) => {
+    return await collection.findOneAndUpdate(
+        {_id: id},
+        {$set: {['scores.' + exam.toLowerCase()]: score}},
+        {returnDocument: 'after'}
+    );
 }
 
-export const findByName = (name) => {
-    return Array.from(students.values()).filter(s => s.name.toLowerCase() === name.toLowerCase());
+export const findByName = async (name) => {
+    return await collection.find({name}).toArray();
 }
 
-export const countByNames = (names) => {
-    names = names.map(name => name.toLowerCase());
-    return Array.from(students.values()).filter(s => names.includes(s.name.toLowerCase())).length;
+export const countByNames = async (names) => {
+    return await collection.find({name: {$in: names}}).count();
+
 }
 
-export const findByMinScore = (exam, minScore) => {
-    return Array.from(students.values()).filter(s => s.scores[exam] >= minScore);
+export const findByMinScore = async (exam, minScore) => {
+    return await collection.find({['scores.' + exam.toLowerCase()]: {$gte: +minScore}}).toArray();
+}
+
+export const getAllStudents = async () => {
+    const students = await collection.find().toArray();
+    students.sort((a, b) => a._id - b._id);
+    return students.map(student => ({...student, password: undefined}));
 }

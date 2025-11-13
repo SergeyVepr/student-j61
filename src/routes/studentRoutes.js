@@ -4,7 +4,7 @@ import {
     addStudent, countByNames,
     deleteStudent, findByMinScore,
     findByName,
-    findStudent,
+    findStudent, getAllStudents,
     updateStudent
 } from "../controller/studentController.js";
 
@@ -18,6 +18,7 @@ router.patch("/score/student/:id", (addScore));
 router.get("/students/name/:name", (findByName));
 router.get("/quantity/students", (countByNames));
 router.get("/students/exam/:exam/minscore/:minScore", (findByMinScore));
+router.get("/students", (getAllStudents));
 
 
 export default router;
