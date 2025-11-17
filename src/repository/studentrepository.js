@@ -1,54 +1,20 @@
-let collection;
+import Student from "../model/student.js";
 
-export const init = db => collection = db.collection('college');
-
-export const addStudent = async ({id, name, password}) => {
-    console.log(typeof collection);
-    const existingStudent = await collection.findOne({_id: id});
-    if (existingStudent) return false;
-    await collection.insertOne({_id: id, name, password, scores: {}});
-    return true;
-
+export const createStudent = (student) => Student.create(student);
+export const findStudentById = (id) => Student.findById({_id: id});
+export const deleteStudent = (id) => Student.findByIdAndDelete({_id: id});
+export const updateStudent = (id, data) => Student.findByIdAndUpdate({_id: id}, data, {returnDocument: 'after'});
+export const updateStudentScores = (id, exam, score) => {
+    exam = exam.toLowerCase();
+    return Student.findByIdAndUpdate({_id: id}, {[`scores.${exam}`]: score}, {returnDocument: 'after'});
 }
-
-export const findStudent = async (id) => {
-    return await collection.findOne({_id: id});
-};
-
-export const deleteStudent = async id => {
-    return await collection.findOneAndDelete({_id: id});
+export const findStudentsByName = (name) => Student.find({name: new RegExp(`^${name}$`, `i`)});
+export const countStudentsByName = (names) => {
+    const regexConditions = names.map(name => ({name: new RegExp(`^${name}$`, `i`)}));
+    return Student.countDocuments({$or: regexConditions});
 }
-
-export const updateStudent = async (id, data) => {
-    return await collection.findOneAndUpdate(
-        {_id: id},
-        {$set: data},
-        {returnDocument: 'after'});
+export const findStudentByMinScore = (exam, minScore) => {
+    exam = exam.toLowerCase();
+    return Student.find({[`scores.${exam}`]: {$gte: minScore}});
 }
-
-export const addScore = async (id, exam, score) => {
-    return await collection.findOneAndUpdate(
-        {_id: id},
-        {$set: {['scores.' + exam.toLowerCase()]: score}},
-        {returnDocument: 'after'}
-    );
-}
-
-export const findByName = async (name) => {
-    return await collection.find({name}).toArray();
-}
-
-export const countByNames = async (names) => {
-    return await collection.find({name: {$in: names}}).count();
-
-}
-
-export const findByMinScore = async (exam, minScore) => {
-    return await collection.find({['scores.' + exam.toLowerCase()]: {$gte: +minScore}}).toArray();
-}
-
-export const getAllStudents = async () => {
-    const students = await collection.find().toArray();
-    students.sort((a, b) => a._id - b._id);
-    return students.map(student => ({...student, password: undefined}));
-}
+export const getAllStudents = () => Student.find().sort({_id: 1});
