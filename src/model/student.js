@@ -18,7 +18,7 @@ const studentSchema = new mongoose.Schema({
                 ret.id = ret._id;
                 ret.name;
                 ret._id = undefined;
-                ret.password = undefined
+                delete ret.password;
                 return ret;
             }
         }
