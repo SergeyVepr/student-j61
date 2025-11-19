@@ -1,5 +1,6 @@
 import * as service from "../service/studentService.js";
 import {scoreSchema, studentSchema,updateStudentSchema} from "../validator/studentValidator.js";
+import {DefaultNotFount} from "../constants/defaultNotFount.js";
 
 
 
@@ -17,9 +18,9 @@ export const findStudent = async (req, res) => {
 
 export const updateStudent = async (req, res) => {
     const {error} = updateStudentSchema.validate(req.body);
-    if (error) return res.status(400).json({error: error.details[0].message})
+    if (error) return res.status(400).json(new DefaultNotFount(req.status, 'Not found', error.details[0].message, req.path))
     const student = await service.updateStudent(+req.params.id, req.body);
-    res.status(student ? 200 : 404).json(student ? student : 'Not found student');
+    res.status(student ? 200 : 404).json(student ? student : new DefaultNotFount(req.status, 'Not found', req.message, req.path));
 }
 
 export const deleteStudent = async (req, res) => {

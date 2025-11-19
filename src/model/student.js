@@ -12,19 +12,19 @@ const studentSchema = new mongoose.Schema({
         }
     },
     {
-        versionKey: false, id: true,
+        versionKey: false, _id: false,
         toJSON: {
             transform: (doc, ret) => {
                 ret.id = ret._id;
                 ret.name;
-                ret._id = undefined;
+                delete ret._id;
                 delete ret.password;
-                return ret;
+                return ret
             }
         }
     }
 );
 
-const Student = mongoose.model('Student', studentSchema, 'college');
+const Student = mongoose.model('Student', studentSchema, 'students');
 export default Student;
 
